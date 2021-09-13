@@ -1,0 +1,9 @@
+baseURL = 'http://chiro.wang/'
+languageCode = 'zh'
+title = 'Twilight Tornado'
+theme = "paper"
+
+[params]
+  disableHLJS = false
+  twitter = 'TWT233'
+  github = 'TWT233'
