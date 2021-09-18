@@ -30,7 +30,7 @@ https://github.com/golang/go/tree/master/src/context
 
 虽然上来就看注释很可能看不懂概念，不过万事开头难嘛，没什么怕的，我们遇到新概念的时候记录一下方便后面留个心眼就行。官方的注释文档还是很有参考意义的，所以我们分段来慢慢看：
 
-以下是源码中的文件注视的第一段，亦即摘要（L5 - L7）：
+以下是源码中的文件注释的第一段，亦即摘要（L5 - L7）：
 
 ```go
 // Package context defines the Context type, which carries deadlines,
