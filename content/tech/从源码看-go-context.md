@@ -82,9 +82,11 @@ https://github.com/golang/go/tree/master/src/context
 
 主要用在网络请求的处理中
 
-go 在他们的 [blog 中](https://go.dev/blog/context)就提到了：用 go 写的网络服务器一般会给每一个请求分配一套 goroutine，那这些服务同一个请求的 goroutine 之间怎么互传数据、怎么做超时控制等等功能呢？所以 context 就被设计出来了。
+go 在他们的 [blog 中](https://go.dev/blog/context)就提到了：用 go 写的网络服务器一般会用一堆 goroutines 来处理同一个请求，比如接请求、打解包、调用数据端等等等等都是 goroutine，那这些服务于同一个请求的 goroutine 之间怎么互传数据、怎么做超时控制等等功能呢？
 
-context 是被设计出来协调这些「服务于同一个请求」的整套 goroutine，所以 context 也被设计为「request-specific」的，亦即「一个请求、一套 Context」理念
+context 就被设计出来救世了
+
+context 是 google 内部设计出来协调这些「服务于同一个请求」的整套 goroutine 的功能组件，所以 context 也被设计为「request-specific」的，亦即「一个请求、一套 Context」理念
 
 # 怎么用（功能、接口）
 
@@ -98,4 +100,71 @@ context 包中主要提供了接口 Context，这个接口有四个方法：
 其实这几个新概念捋完，context 包基本就解清了，context 本身也只是一个小包，源码（不含测试）加上注释也才不到六百行
 
 顺带一提，源码：
-https://github.com/golang/go/tree/master/src/context ，这种小包无论是新手老手，都很推荐一看
+https://github.com/golang/go/tree/master/src/context ，推荐一看
+
+# 引入了哪些概念
+
+## cancel
+
+cancel 是 context 的功能中「控制」部分的实现方式，context 的使用是呈树状的，cancel 一个 context 会关闭它本身和所有的子 context
+
+通过 cancel 这个手段，我们能够控制 context 的使用、通知协调同步众多子 goroutine
+
+## deadline
+
+deadline 就是一个 Context 的时限，这个 context 会在到达 deadline 时自动被 cancel
+
+这个概念用于 context 的超时控制
+
+### 用法
+
+为一个 Context 加 deadline 的方法：
+
+```go
+newCtx, cancel = context.WithDeadline(ctx, deadline)
+```
+
+`newCtx`的 deadline 就被设定为了`deadline`，cancel 是一个函数，调用 cancel 可以手动 cancel newCtx
+
+### 看看源码
+
+```go
+// WithDeadline returns a copy of the parent context with the deadline adjusted
+// to be no later than d. If the parent's deadline is already earlier than d,
+// WithDeadline(parent, d) is semantically equivalent to parent. The returned
+// context's Done channel is closed when the deadline expires, when the returned
+// cancel function is called, or when the parent context's Done channel is
+// closed, whichever happens first.
+//
+// Canceling this context releases resources associated with it, so code should
+// call cancel as soon as the operations running in this Context complete.
+func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {
+	if parent == nil {
+		panic("cannot create context from nil parent")
+	}
+	if cur, ok := parent.Deadline(); ok && cur.Before(d) {
+		// The current deadline is already sooner than the new one.
+		return WithCancel(parent)
+	}
+	c := &timerCtx{
+		cancelCtx: newCancelCtx(parent),
+		deadline:  d,
+	}
+	propagateCancel(parent, c)
+	dur := time.Until(d)
+	if dur <= 0 {
+		c.cancel(true, DeadlineExceeded) // deadline has already passed
+		return c, func() { c.cancel(false, Canceled) }
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.err == nil {
+		c.timer = time.AfterFunc(dur, func() {
+			c.cancel(true, DeadlineExceeded)
+		})
+	}
+	return c, func() { c.cancel(true, Canceled) }
+}
+```
+
+整体还是比较好理解的，`propagateCancel(parent, c)`让 c 跟着 parent 被 cancel（context 的使用是树状的，所以 parent 被 cancel 时所有子孙 context 都会被 cancel）
