@@ -129,3 +129,198 @@ go 的标准库中有很多功能都是通过默认值/默认实现来提供的�
 
 1. 在 `Context.Err` 的注释中提到了 `error`，所以按就近原则要前置
 2. 这两个 `error` 是用默认值实现的，算常量，应该前置
+
+## emptyCtx: 起源
+
+这是最基础的 Context：不会被终止、不能携带 value、没有 deadline，emptyCtx 的声明：
+
+```go
+// An emptyCtx is never canceled, has no values, and has no deadline. It is not
+// struct{}, since vars of this type must have distinct addresses.
+type emptyCtx int
+```
+
+底层使用 int 作为占位符，接口使用空实现来提供，
+
+包中定义了两个常量 emptyCtx：
+
+```go
+var (
+	background = new(emptyCtx)
+	todo       = new(emptyCtx)
+)
+
+// Background returns a non-nil, empty Context. It is never canceled, has no
+// values, and has no deadline. It is typically used by the main function,
+// initialization, and tests, and as the top-level Context for incoming
+// requests.
+func Background() Context {
+	return background
+}
+
+// TODO returns a non-nil, empty Context. Code should use context.TODO when
+// it's unclear which Context to use or it is not yet available (because the
+// surrounding function has not yet been extended to accept a Context
+// parameter).
+func TODO() Context {
+	return todo
+}
+```
+
+又是默认对象实现方法，这两个 context 的使用场景也在注释中给出，可谓是万物之源
+
+### 问题
+
+- 为什么要分成两个 context，background 表达能力不足吗
+  - 自答：background 是所有 context 之根，所以使用情景也很单一：main 线程中，其他情况下要创建新的 context 树都使用`TODO()`
+  - 如果只用 background 的话，context 树就可能出现环了
+
+## WithCancel()：第一步
+
+WithCancel 接受一个 parent context，返回一个 child context 和一个 CancelFunc，调用该 CancelFunc 就可以终止 child
+
+这是我们接触到的第一个派生新 context 的函数。WithCancel 让我们能够手动控制一个 context 的终止
+
+### CancelFunc
+
+先来看看这个 WithCancel 给我们的榔头怎么用和长啥样，CancelFunc 的注释与 typedef 如下：
+
+```go
+// A CancelFunc tells an operation to abandon its work.
+// A CancelFunc does not wait for the work to stop.
+// A CancelFunc may be called by multiple goroutines simultaneously.
+// After the first call, subsequent calls to a CancelFunc do nothing.
+type CancelFunc func()
+```
+
+1. CancelFunc 是用来通知下游该收手了
+2. CancelFunc 即调即起效（当然也需要下游适配）
+3. CancelFunc 也是并发安全的、幂等的
+
+### 内部实现
+
+```go
+func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {
+	if parent == nil {
+		panic("cannot create context from nil parent")
+	}
+	c := newCancelCtx(parent)
+	propagateCancel(parent, &c)
+	return &c, func() { c.cancel(true, Canceled) }
+}
+```
+
+可见逻辑非常简单：
+
+1. 检查入参
+2. 在 parent 上挂一个新的 child context
+3. `propagateCancel` 对 parent 和 child 进行设置，使得 parent 被终止时同步终止 child
+   - 回想：context 是树形结构排布的
+4. 使用闭包做出 CancelFunc 并返回
+   - 注意：这个 CancelFunc 是用以终止 child 的
+
+## propagateCancel
+
+这个函数用来设置终止操作的传播关系，使得「当一个 Context 被终止时，所有基于它生成的 Context 也会被终止」这条性质得以成立
+
+源码：
+
+```go
+// propagateCancel arranges for child to be canceled when parent is.
+func propagateCancel(parent Context, child canceler) {
+	done := parent.Done()
+	if done == nil {
+		return // parent is never canceled
+	}
+
+	select {
+	case <-done:
+		// parent is already canceled
+		child.cancel(false, parent.Err())
+		return
+	default:
+	}
+
+	if p, ok := parentCancelCtx(parent); ok {
+		p.mu.Lock()
+		if p.err != nil {
+			// parent has already been canceled
+			child.cancel(false, p.err)
+		} else {
+			if p.children == nil {
+				p.children = make(map[canceler]struct{})
+			}
+			p.children[child] = struct{}{}
+		}
+		p.mu.Unlock()
+	} else {
+		atomic.AddInt32(&goroutines, +1)
+		go func() {
+			select {
+			case <-parent.Done():
+				child.cancel(false, parent.Err())
+			case <-child.Done():
+			}
+		}()
+	}
+}
+```
+
+流程如下，大家可以对照着理解：
+
+1. 检查入参（包括检查 parent 是否已经被终止）
+2. 获取 parent 内部的 cancelCtx 用以注册终止事件调用链
+   - 当 p 被终止时，会递归地终止 p.children
+3. 如果 parent 不是一个 cancelCtx，那么就手动开一个 goro 监听 parent 的终止事件（终止信号是 parent.Done()被 closed）
+
+在`parentCancelCtx`中，有一个出于兼容性考量的设计：
+
+```go
+// checking whether
+// parent.Done() matches that *cancelCtx. (If not, the *cancelCtx
+// has been wrapped in a custom implementation providing a
+// different done channel, in which case we should not bypass it.)
+```
+
+> 来源于`parentCancelCtx`的注释
+
+在拿到 parent 的 cancelCtx 后，为了避免用户自定义了 Done channel 的实现导致我们「终止错了」context，所以此处还检查了`parent.Done()==parent.cancelCtx.done`
+
+这个设计还体现了「接口为本」：具体实现（parent.cancelCtx.done）和接口实现（parent.Done()）出现了冲突，以 parent.Done() 为准（抛到外面手动开一个 goro 监听 parent.Done() 被 close 的事件）
+
+## cancelCtx
+
+cancelCtx 顾名思义，是可被终止的 context，结构定义：
+
+```go
+type cancelCtx struct {
+	Context
+
+	mu       sync.Mutex            // protects following fields
+	done     chan struct{}         // created lazily, closed by first cancel call
+	children map[canceler]struct{} // set to nil by the first cancel call
+	err      error                 // set to non-nil by the first cancel call
+}
+```
+
+### canceler
+
+cancelCtx.children 是一个 set，key 的类型为 canceler，canceler 是所有可被**直接**终止的 context 所需要实现的接口，定义也很简单：
+
+```go
+// A canceler is a context type that can be canceled directly. The
+// implementations are *cancelCtx and *timerCtx.
+type canceler interface {
+	cancel(removeFromParent bool, err error) // 调用cancel()来终止
+	Done() <-chan struct{} // 同 Context.Done
+}
+```
+
+### cancelCtx.Value()
+
+cancelCtx.Value 对 cancelCtxKey 进行了特殊处理，参见 cancelCtxKey 的注释：
+
+```go
+// &cancelCtxKey is the key that a cancelCtx returns itself for.
+var cancelCtxKey int
+```
