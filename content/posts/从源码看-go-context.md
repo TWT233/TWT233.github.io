@@ -1,7 +1,8 @@
 ---
 title: "从源码看 Go Context"
 date: 2021-09-13T15:37:54+08:00
-draft: true
+draft: false
+tags: ["tech", "go"]
 ---
 
 最近写业务发现该来学学 go 的 context 了，拿起 gopl 来看，发现书里没讲这个包，上网搜的相关教程讲的有点怪怪的，最后还是捞出源码来看了，于是就有了这篇。
@@ -324,3 +325,61 @@ cancelCtx.Value 对 cancelCtxKey 进行了特殊处理，参见 cancelCtxKey 的
 // &cancelCtxKey is the key that a cancelCtx returns itself for.
 var cancelCtxKey int
 ```
+
+## WithDeadline()
+
+这是我们接触到的第二个派生新 context 的函数，我们先来看一眼签名：
+
+```go
+func WithDeadline(parent Context, d time.Time) (Context, CancelFunc)
+```
+
+来试试看名说话，猜猜实现方法：
+
+1. 接收一个 time.Time，名字又是 WithDeadline，想必是到了 d 指定的时间就终止 child
+   - 这个定时终止的实现方法我觉得是开个定时器+用闭包终止，毕竟都引入 time 了，用定时器很方便
+   - 我最开始（只看函数名还没看入参类型时）的想法是开个 goro 自己终止，这显然也可以，定时器内部也是开 goro 的
+2. 返回 Context+CancelFunc，按 WithCancel 的路子来推测的话，前者是 child，后者应该是用来提前手动终止 child 的
+   - 这是不是也暗示 WithDeadline 内部会调用/参考 WithCancel
+   - 比如先 WithCancel 出 child 和 cancel() 来，然后开个定时器调用 cancel()
+
+看看答案：
+
+```go
+func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {
+	if parent == nil {
+		panic("cannot create context from nil parent")
+	}
+	if cur, ok := parent.Deadline(); ok && cur.Before(d) {
+		// The current deadline is already sooner than the new one.
+		return WithCancel(parent)
+	}
+	c := &timerCtx{
+		cancelCtx: newCancelCtx(parent),
+		deadline:  d,
+	}
+	propagateCancel(parent, c)
+	dur := time.Until(d)
+	if dur <= 0 {
+		c.cancel(true, DeadlineExceeded) // deadline has already passed
+		return c, func() { c.cancel(false, Canceled) }
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.err == nil {
+		c.timer = time.AfterFunc(dur, func() {
+			c.cancel(true, DeadlineExceeded)
+		})
+	}
+	return c, func() { c.cancel(true, Canceled) }
+}
+```
+
+处理流程：
+
+1. 检查入参
+   1. parent 是否为 nil
+   2. parent.Deadline() 是否比 d 还早
+      - 如果比 d 还早，那就退化为 WithCancel(parent)
+2. 创建 child
+   - 这里也调用了 propagateCancel，mark 一下
