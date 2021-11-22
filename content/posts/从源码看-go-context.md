@@ -382,4 +382,57 @@ func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {
    2. parent.Deadline() 是否比 d 还早
       - 如果比 d 还早，那就退化为 WithCancel(parent)
 2. 创建 child
-   - 这里也调用了 propagateCancel，mark 一下
+   - 注意：这里用 newCancelCtx 包装了 parent
+   - 所以这里也调用了 propagateCancel，mark 一下
+   - 问题 1：为什么要包装 parent
+3. 检查 d 是不是已经过了
+   - 如果已经过了，那就终止掉 child，然后正常返回 child 和 cancelFunc
+   - 问题 2：为什么在这里才检查
+4. 设置 c.timer
+   - 问题 3：这里检查了 c.err==nil，为什么要检查，然后为什么检查的是 err 字段
+
+答案（个人观点）：
+
+1. 为了简化代码：Don't repeat yourself，包装 parent 来造一个 sidecar，这样就可以把 cancel 相关的逻辑交给 cancelCtx，不用 copy-paste 了
+   - 用这种方法的话需要注意一下 child, parent 和 sidecar 之间的指向关系，推荐画个图
+2. 为了逻辑的完整性与连贯性：这种情况不能回退，那就应该正常创建 child，所以此处需要先创建 child 再检查 d
+3. c.err 是定义在 cancelCtx 中的，err!=nil 表示已经被终止，设置 timer 前检查是否已经被终止是为了避免重复终止（避免重复终止同一个 context 也是使用原则之一）；而检查是否终止其实是有多种方式的，检查 err 字段我认为是最简单的
+
+## timerCtx
+
+看到这里的话，timerCtx 应该比较好理解了：组合了一个 cancelCtx，Context 的四个接口中委托出去三个，只重写了 Deadline()
+
+不过 timerCtx 也是支持手动终止的，且手动终止 timerCtx 时需要关闭自己的 timer，所以重写了 cancel（这是 canceler 接口的函数），当然，细看 cancel 的话还能发现这里特别处理了 cancelCtx（前文提到的 sidecar，伏笔了）
+
+## WithTimeout
+
+这个就很简单了：
+
+```go
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {
+	return WithDeadline(parent, time.Now().Add(timeout))
+}
+```
+
+## WithValue
+
+```go
+func WithValue(parent Context, key, val interface{}) Context {
+	if parent == nil {
+		panic("cannot create context from nil parent")
+	}
+	if key == nil {
+		panic("nil key")
+	}
+	if !reflectlite.TypeOf(key).Comparable() {
+		panic("key is not comparable")
+	}
+	return &valueCtx{parent, key, val}
+}
+```
+
+这是给 context 加 value 的函数，这个函数同样会生成一个子 Context，流程也很简单，对三个入参进行检查，然后新建子 Context 并返回
+
+## valueCtx
+
+valueCtx 很有意思：每个 valueCtx 只存一对 key-value
