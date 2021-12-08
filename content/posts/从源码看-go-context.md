@@ -7,20 +7,6 @@ tags: ["tech", "go"]
 
 最近写业务发现该来学学 go 的 context 了，拿起 gopl 来看，发现书里没讲这个包，上网搜的相关教程讲的有点怪怪的，最后还是捞出源码来看了，于是就有了这篇。
 
-# 学习列表
-
-围绕 context，找出以下问题的答案：
-
-1. 是什么东西
-2. 用在什么地方（情景）
-3. 怎么用（功能、接口）
-4. 引入了哪些概念
-
-拓展一些的问题：
-
-1. 整体设计、性能设计的方案和亮点
-2. 结合使用例子看
-
 # 源码
 
 https://github.com/golang/go/tree/master/src/context
@@ -435,4 +421,33 @@ func WithValue(parent Context, key, val interface{}) Context {
 
 ## valueCtx
 
-valueCtx 很有意思：每个 valueCtx 只存一对 key-value
+valueCtx 很有意思：长得像个 map，但实际上每个 valueCtx 只存一对 key-value，如果自己没搜到 key 的话就递归地往父 context 搜
+
+关于这个特性的设计，我的理解是为了做 variable shadowing：这样就可以在不污染父 context 的 value map 的同时重写同名 key
+
+其他地方就很简单直白了，因为只要管一对 key-value，所以也只需要实现 Value() 接口，其他的接口都委托给父 Context：
+
+```go
+// A valueCtx carries a key-value pair. It implements Value for that key and
+// delegates all other calls to the embedded Context.
+type valueCtx struct {
+	Context
+	key, val interface{}
+}
+
+func (c *valueCtx) String() string {
+	return contextName(c.Context) + ".WithValue(type " +
+		reflectlite.TypeOf(c.key).String() +
+		", val " + stringify(c.val) + ")"
+}
+
+func (c *valueCtx) Value(key interface{}) interface{} {
+	if c.key == key {
+		return c.val
+	}
+	return c.Context.Value(key)
+}
+
+```
+
+String() 接口是 stringer 的接口，大家很熟悉就不作展开了
