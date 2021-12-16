@@ -451,3 +451,7 @@ func (c *valueCtx) Value(key interface{}) interface{} {
 ```
 
 String() 接口是 stringer 的接口，大家很熟悉就不作展开了
+
+# 总结
+
+五百多行的小包写得很漂亮，作为一个网络的基础包，做到了足够精简，同时也提供了拓展性默认提供的四种实现（emptyCtx cancelCtx timerCtx valueCtx）覆盖了
