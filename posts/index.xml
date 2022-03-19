@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Twilight Tornado</title><link>http://chiro.wang/posts/</link><description>Recent content in Posts on Twilight Tornado</description><generator>Hugo -- gohugo.io</generator><language>zh</language><lastBuildDate>Wed, 09 Mar 2022 18:03:08 +0800</lastBuildDate><atom:link href="http://chiro.wang/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>从源码看 Go errors</title><link>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-errors/</link><pubDate>Wed, 09 Mar 2022 18:03:08 +0800</pubDate><guid>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-errors/</guid><description>go version: 1.15.7
+TL;DR for usage only error 是一个 interface，只包含一个 method: Error() string，返回该 error 的信息 两种常用新建 error 的方法： errors.New() fmt.Errorf() wrap error：保留核心 error 信息，方便细粒度错误处理 wrap error 的方法： 自己实现一个包含 Unwrap() error 方法的结构 使用 fmt.Errorf() + %w 格式标记符 unwrap error：解出核心 error，透过封装看本质，进行更精细的错误处理 errors 包提供的两个函数： Is(err, target error) bool：判断 err 能否匹配 target As(err error, target interface{}) bool：如果 err 匹配 target，将匹配结果放入 target 注意：target 需要为指向 error 的指针 拓展：</description></item><item><title>Vim Hax Note</title><link>http://chiro.wang/posts/vim-hax-note/</link><pubDate>Tue, 14 Dec 2021 00:12:17 +0800</pubDate><guid>http://chiro.wang/posts/vim-hax-note/</guid><description>老年人用想了想，老 hax 应该都肌肉记忆了，也用不到这个。那就老年新人用吧
+variable: wrapped in ``, such as n
+navigation command key1 key2 back (word) b forward (word) f back (page) CTRL+b PgUp forward (page) CTRL+f PgDn line start 0 home line start (non-blank) ^ line end $ end command key1 key2 goto line n n gg mv up n line(col) n k n Up mv down n line(col) n j n Down mv left n row n h n Left mv right n row n l n Right edit command key1 key2 undo u redo n CTRL+r visual mode v copy (visual mode) y paste p replace :s/old/new/g find command key1 key2 normal find / find current word #</description></item><item><title>Midnight in Shenzhen</title><link>http://chiro.wang/posts/midnight-in-shenzhen/</link><pubDate>Fri, 15 Oct 2021 02:51:38 +0800</pubDate><guid>http://chiro.wang/posts/midnight-in-shenzhen/</guid><description>突然发现来深圳快三个月了，感觉上班时间过得确实蛮快的，今天晚上因为要给朋友传东西所以得把电脑开晚一点，就来随便写点东西
+喜欢深圳的哪里 首先是天气好，海滨城市真好啊，暑假没有热得人脑子烧坏掉，今年二三月实习的时候体感也不冷
+现在十月了，前两天来了台风，带了一大波秋雨来，都说一阵秋雨一阵寒，不过气温变化也不是太大
+说到这个，可能也和今年秋老虎有关系，感觉今年秋天怪怪的，国庆回老家还热得我人没了，感觉和六七月一样
+再者绿化不错，大树很多，挺有感觉的，算是给这个浮躁的城市减减速吧
+然后说点虚的：深圳其实很好融入，特别是对我们这种打工仔，我刚来的时候接触到的各种人都挺不错的，都看得出来是在谋生存谋前程
+我也到过很多其他城市，一线也好，二线三线也好，其中大部分的城市都有各自的问题，很多土著都有着属于自己的傲慢与对外来人的偏见，详情请见正黄旗等例此处不再赘述
+但是深圳不一样，大量的打工仔冲淡了土著的含量，这是一座移民城市，我们这种移民打工仔正是和大部分人一样的存在，所以融入进来会很快
+这种应该算是认同感吧，这也只是我个人的感受，自然是不能让那些收租户和资本家共情
+其次，深圳年轻人很多，就让这座城市有了不少活力，也让年轻人有很多感受人生的选择
+虽然年轻人大多都是打工仔，而打工又很累，但是年轻人不管怎么样也是有自己的时间和生活的
+自诩上流的打工仔下班了偶尔找个酒吧，辛苦一天的打工仔下班了找工友下个馆子，高山流水下里巴人都能在深圳找到目标年轻人，这些活动也让深圳劳累而又繁华与有活力
+但是要在深圳玩的尽兴，得有钱
+不喜欢深圳的哪里 全是钱
+老子我穷啊，那咋办嘛，团建的时候去过一两次深圳湾（去恰饭），然后看到深圳湾的带 house，只能说买不起润得起
+不过我也没啥意愿在深圳买房，买得起买不起另说，我是觉得没必要
+投资自有更好的去处，自住我图个啥呢，我也不急着结婚，有这大几百万存银行吃利息都够补贴我日用了
+不说了，再说下去就好像我真有大几百万一样了
+除此之外，这个到处都是钱的问题也搞得人情味很不足
+大家人是都不错，不过来了深圳就是打工人，打工人当然是忙着赚钱，所以大家都公事公办，倒也不能说不好，毕竟也没有为难我或者恶心我，只能说太没有人情味儿了
+感觉上就像是我很快速地融入到了机器装配流水线上，有点好处：省事儿
+写完这句话回头看看才发现，这深圳确实是流水线一样的城市啊，毕竟来了深圳就是打工人
+还有几个地方不喜欢：
+虫子多
+我租房在一楼，有一天就看到两只蟑螂从窗边缝爬进来，搞得我现在天气凉一点了都不敢开窗睡，只能关窗开空调，然后多交不少电费
+说到这个，因为有蟑螂我都不敢做饭，我爸倒是给我整了炉灶大全套，房子也带个小厨房，只能偶尔开点小火或者煮煮粥了
+基建离谱
+我都不说不好了，说的是离谱，有多离谱：地铁又臭又短又奇怪：路线奇怪，设站离谱，腾讯大厦附近一大片的写字楼全靠一公里外的深圳大学地铁站
+好歹是个超一线城市的中心区的著名企业（前）总部片区，居然还去拼大学的地铁站用，反观地铁经停居民区时几步路一个站，听上去不过倒也
+然后是自行车道，不少地方的自行车道是直接在人行道上用黄油漆画两条就完事了，我甚至怀疑规划设计人是 DIO 爷
+然后是红绿灯，看不懂，已经不是我的逻辑推理水平能算清楚的东西了，也不想算，还是玩会儿手机吧
+最近到处都在修地铁，搞得路奇奇怪怪的，所以像什么公交车路线啊车道啊都按下不表
+最后 总的来说深圳体验还不错，不过这都是个人看法，像我身边也有不少天天念叨深圳房价的，也有不少天天想着玩的，还有不少深圳有了几套房天天念叨深圳房价的
+我看他们看待深圳的感受差别都蛮大的，所以到头来还是那个小马过河，自己试试才知道</description></item><item><title>从源码看 Go Context</title><link>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-context/</link><pubDate>Mon, 13 Sep 2021 15:37:54 +0800</pubDate><guid>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-context/</guid><description>最近写业务发现该来学学 go 的 context 了，拿起 gopl 来看，发现书里没讲这个包，上网搜的相关教程讲的有点怪怪的，最后还是捞出源码来看了，于是就有了这篇。
+源码 https://github.com/golang/go/tree/master/src/context
+文件注释 看标准库，那肯定得从注释看起。
+虽然上来就看注释很可能看不懂概念，不过万事开头难嘛，没什么怕的，我们遇到新概念的时候记录一下方便后面留个心眼就行。官方的注释文档还是很有参考意义的，所以我们分段来慢慢看：
+以下是源码中的文件注释的第一段，亦即摘要（L5 - L7）：
+// Package context defines the Context type, which carries deadlines, // cancellation signals, and other request-scoped values across API boundaries // and between processes. 从摘要中可以看出来 context 包主要干的活儿就是定义类型 Context，这个类型里带了一些参数
+注意到摘要里是这样描述参数的：request-scoped values，这个词信息量还挺大的：
+这个 Context 类型是 request 相关的，所以 Context 的主要应用场景会是网络请求的收发和处理上 一个 request 应该对应一个 Context，这指导了 Context 的用法和使用时应该绑定请求，最好不要在多个请求的处理流程中复用同一个 Context 后面就是讲用法和注意事项了（L9 - L23，有点长，就不 copy docstring 过来了，这里是做个小总结，推荐大家对照着注释读）：
+收到请求时要创建 Context，调用外部函数了要传 Context 过去 要维持 Context 链，这里提到了几个操作：WithCancel、WithDeadline、WithTimeout、WithValue，这几个操作可以用来制造子孙 Context，待会儿要重点看看 Context 的 Cancel 处理（Cancel 译成终止） 当一个 Context 被终止时，所有基于它生成的 Context 也会被终止 WithCancel、WithDeadline、WithTimeout 都会生成一个 CancelFunc 用来终止 Context，使用时请确保每一条控制流路径上都会调用CancelFunc（go vet 可以检查这一项的 好东西） 接下来是几条「守则」（L25 - L44），推荐大家都遵守这些守则，可以保持各个包中的接口都一致，同时也能让静态分析工具（比如后面会提到的 go vet）来分析 Context 的使用。我们来看看都有些啥：</description></item><item><title>Hello Hugo</title><link>http://chiro.wang/posts/hello-hugo/</link><pubDate>Mon, 13 Sep 2021 14:41:34 +0800</pubDate><guid>http://chiro.wang/posts/hello-hugo/</guid><description>有的没的 前段时间腾讯云连着给我发了好几封域名到期的提示邮件，我才意识到我也写了五年的博客了，虽然写写停停，不过也一直都在打打字。当时找朋友帮我买打折域名的时候，我还觉得五年够用得很，时间过得确实太快了
+不过时间过得快，人也变得快，环境变得则是更快了，就比如五年前我还是拿着一块五六百块的八寸 windows 平板凑着一个三十块的淘宝款蓝牙键盘写博客，我当时的博客是用 wordpress 搭的，那平板跑个 xshell 连上去都蛮费劲，但当时也挺开心，穷人自有穷人的过法嘛，现在肯定不是这环境了
+而网络上的环境则变得更大了，像后来上大学时我接触到 hexo，才发现还能白嫖 github pages，那肯定直接把博客挪到 hexo，一个月也能省点 vps 钱；现在又是从 hexo 挪到 hugo，不得不说 hexo 文档有点离谱的（我这种溜了还骂有点不太好，不过我用 hexo 的时候也骂 hexo 的文档），正好去年有同学给我推荐 hugo，就记着什么时候试用迁移一下，最近工作也安定下来了，想起这事儿的契机也是看公司的技术文章提到 hugo，于是现在就在这儿工位摸摸鱼试试看，先打个示例文章给 hugo 生成 pages 看看效果，所以具体使用体验就待会儿再来打啦
+使用体验 确实不错，初步用下来体验还是很顺滑的，只遇到了文章默认设置为 draft=true 导致没渲染出来的问题
+theme 引入推荐用 git submodule，要修改 theme 的配置也不需要到 theme 自己的 config 里改，改自己站点的 config 就行了，我记得 hexo 的是要改 theme 的 config，所以不能用 submodule 来着？
+live server 体验也不错，监控项到位，命令行提示不废话，速度也确实快，不愧是 go 写的 webserver</description></item></channel></rss>
