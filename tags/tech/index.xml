@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>tech on Twilight Tornado</title><link>http://chiro.wang/tags/tech/</link><description>Recent content in tech on Twilight Tornado</description><generator>Hugo -- gohugo.io</generator><language>zh</language><lastBuildDate>Wed, 30 Mar 2022 12:33:32 +0800</lastBuildDate><atom:link href="http://chiro.wang/tags/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>KiCad 和 Altium Designer</title><link>http://chiro.wang/posts/kicad%E5%92%8Cad/</link><pubDate>Wed, 30 Mar 2022 12:33:32 +0800</pubDate><guid>http://chiro.wang/posts/kicad%E5%92%8Cad/</guid><description>我高中时代是用 AD 比较多的，当时是社团里自己做做东西所以也是白嫖的盗版：一没钱买正版，二来 AD 也不至于查我们个小社团自嗨的盗版问题
 当时大概是 AD14 用的比较多吧（记不太得了，用起来确实顺手，实在要说缺点的话那加载 pcb 有点卡，不过操作习惯和交互式布线上可以说是无可挑剔
 大学里的话则是先用了一段时间的 AD20，也是白嫖的盗版（没钱，后来心有愧疚就开始找其他出路，于是就有了标题里的一号主人公 KiCad
-不得不说，开源社区实在是现世共产：KiCad 功能挺齐全，架构设计一看就是经典程序员式设计：大功能都是划分成模块化组件、小功能提供了接口做成插件、分布式的 plugins registry、基于文本的数据格式、插件语言还是 python，相当的专业；还在持续不断地更新、社区也很不错，有问有答，视频站上也有不少社区自发创作的 tutorial
-不过 KiCad 交互式布线体验确实不如 AD，这也没办法，毕竟是大家自己业余时间做的，可以理解，现在这种体验也够用</description></item><item><title>从源码看 Go errors</title><link>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-errors/</link><pubDate>Wed, 09 Mar 2022 18:03:08 +0800</pubDate><guid>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-errors/</guid><description>go version: 1.15.7
+不得不说，开源社区实在是现世共产：KiCad 功能挺齐全，架构设计一看就是经典程序员式设计：
+大功能都是划分成模块化组件 kicad 入口是一个 project manager 原理图编辑、pcb 编辑、封装库编辑都是可独立运行的组件，在 project manager 中放置入口 小功能提供了接口做成插件 分布式的 plugins registry 基于文本的数据格式 这个相当好评，可以用 git 管理项目了 插件用的语言是 python 这种模式相当的专业和成熟，很经典的 unix 大型项目组织方式和交互逻辑
+KiCad 目前还在持续不断地更新、社区也很不错
+论坛有问有答，不少问题我都能搜到论坛的讨论帖 视频站上也有不少社区自发创作的 tutorial 不过 KiCad 交互式布线体验确实不如 AD
+说回 AD，以前我学的时候感觉上手挺快的，流程封装的比较好，顺着一路走下来就行，自己摸索摸索也不难，和大多数商业软件一样开箱即用
+AD 的自动走线以前经常被我和同学笑话，不知道现在怎么样了，而且 KiCad 里我没找到这个功能（我猜有的话效果应该不会差太多
+然后就是加载巨慢，虽然这也是为了智能辅助而不得不加载的东西吧，而且 AD 的交互式走线体验确实好
+说到 EDA，有一个老生常谈的话题就是国产 EDA</description></item><item><title>从源码看 Go errors</title><link>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-errors/</link><pubDate>Wed, 09 Mar 2022 18:03:08 +0800</pubDate><guid>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-errors/</guid><description>go version: 1.15.7
 TL;DR for usage only error 是一个 interface，只包含一个 method: Error() string，返回该 error 的信息 两种常用新建 error 的方法： errors.New() fmt.Errorf() wrap error：保留核心 error 信息，方便细粒度错误处理 wrap error 的方法： 自己实现一个包含 Unwrap() error 方法的结构 使用 fmt.Errorf() + %w 格式标记符 unwrap error：解出核心 error，透过封装看本质，进行更精细的错误处理 errors 包提供的两个函数： Is(err, target error) bool：判断 err 能否匹配 target As(err error, target interface{}) bool：如果 err 匹配 target，将匹配结果放入 target 注意：target 需要为指向 error 的指针 拓展：</description></item><item><title>从源码看 Go Context</title><link>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-context/</link><pubDate>Mon, 13 Sep 2021 15:37:54 +0800</pubDate><guid>http://chiro.wang/posts/%E4%BB%8E%E6%BA%90%E7%A0%81%E7%9C%8B-go-context/</guid><description>最近写业务发现该来学学 go 的 context 了，拿起 gopl 来看，发现书里没讲这个包，上网搜的相关教程讲的有点怪怪的，最后还是捞出源码来看了，于是就有了这篇。
 源码 https://github.com/golang/go/tree/master/src/context
 文件注释 看标准库，那肯定得从注释看起。

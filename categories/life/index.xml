@@ -11,7 +11,13 @@ keymap 先上图： 和 gh60 的主要区别：
 全部键都可热插拔 砍了部分配列 比如 ISO enter 就砍了，因为卫星轴太挡 空格砍到两种（3u/6.</description></item><item><title>KiCad 和 Altium Designer</title><link>http://chiro.wang/posts/kicad%E5%92%8Cad/</link><pubDate>Wed, 30 Mar 2022 12:33:32 +0800</pubDate><guid>http://chiro.wang/posts/kicad%E5%92%8Cad/</guid><description>我高中时代是用 AD 比较多的，当时是社团里自己做做东西所以也是白嫖的盗版：一没钱买正版，二来 AD 也不至于查我们个小社团自嗨的盗版问题
 当时大概是 AD14 用的比较多吧（记不太得了，用起来确实顺手，实在要说缺点的话那加载 pcb 有点卡，不过操作习惯和交互式布线上可以说是无可挑剔
 大学里的话则是先用了一段时间的 AD20，也是白嫖的盗版（没钱，后来心有愧疚就开始找其他出路，于是就有了标题里的一号主人公 KiCad
-不得不说，开源社区实在是现世共产：KiCad 功能挺齐全，架构设计一看就是经典程序员式设计：大功能都是划分成模块化组件、小功能提供了接口做成插件、分布式的 plugins registry、基于文本的数据格式、插件语言还是 python，相当的专业；还在持续不断地更新、社区也很不错，有问有答，视频站上也有不少社区自发创作的 tutorial
-不过 KiCad 交互式布线体验确实不如 AD，这也没办法，毕竟是大家自己业余时间做的，可以理解，现在这种体验也够用</description></item><item><title>Vim Hax Note</title><link>http://chiro.wang/posts/vim-hax-note/</link><pubDate>Tue, 14 Dec 2021 00:12:17 +0800</pubDate><guid>http://chiro.wang/posts/vim-hax-note/</guid><description>老年人用想了想，老 hax 应该都肌肉记忆了，也用不到这个。那就老年新人用吧
+不得不说，开源社区实在是现世共产：KiCad 功能挺齐全，架构设计一看就是经典程序员式设计：
+大功能都是划分成模块化组件 kicad 入口是一个 project manager 原理图编辑、pcb 编辑、封装库编辑都是可独立运行的组件，在 project manager 中放置入口 小功能提供了接口做成插件 分布式的 plugins registry 基于文本的数据格式 这个相当好评，可以用 git 管理项目了 插件用的语言是 python 这种模式相当的专业和成熟，很经典的 unix 大型项目组织方式和交互逻辑
+KiCad 目前还在持续不断地更新、社区也很不错
+论坛有问有答，不少问题我都能搜到论坛的讨论帖 视频站上也有不少社区自发创作的 tutorial 不过 KiCad 交互式布线体验确实不如 AD
+说回 AD，以前我学的时候感觉上手挺快的，流程封装的比较好，顺着一路走下来就行，自己摸索摸索也不难，和大多数商业软件一样开箱即用
+AD 的自动走线以前经常被我和同学笑话，不知道现在怎么样了，而且 KiCad 里我没找到这个功能（我猜有的话效果应该不会差太多
+然后就是加载巨慢，虽然这也是为了智能辅助而不得不加载的东西吧，而且 AD 的交互式走线体验确实好
+说到 EDA，有一个老生常谈的话题就是国产 EDA</description></item><item><title>Vim Hax Note</title><link>http://chiro.wang/posts/vim-hax-note/</link><pubDate>Tue, 14 Dec 2021 00:12:17 +0800</pubDate><guid>http://chiro.wang/posts/vim-hax-note/</guid><description>老年人用想了想，老 hax 应该都肌肉记忆了，也用不到这个。那就老年新人用吧
 variable: wrapped in ``, such as n
 navigation command key1 key2 back (word) b forward (word) f back (page) CTRL+b PgUp forward (page) CTRL+f PgDn line start 0 home line start (non-blank) ^ line end $ end command key1 key2 goto line n n gg mv up n line(col) n k n Up mv down n line(col) n j n Down mv left n row n h n Left mv right n row n l n Right edit command key1 key2 undo u redo n CTRL+r visual mode v copy (visual mode) y paste p replace :s/old/new/g find command key1 key2 normal find / find current word #</description></item></channel></rss>
